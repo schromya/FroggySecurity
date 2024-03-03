@@ -44,3 +44,18 @@ Full- Jump Frog V1
         |  -------  |   
         |           |
         /           \
+
+
+Mushroom Tall
+      _______
+    /  o      \
+   |___  o  ___|
+       |   |
+       |___|
+
+Mushroom Short
+      _______
+    /       o \
+   |___  o  ___|
+       |___|
+       
