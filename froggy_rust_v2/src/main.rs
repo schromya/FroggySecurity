@@ -70,7 +70,7 @@ fn move_object_left(object: &mut AsciiObject, frame: &mut Frame)  {
 
     // Check if interfering objects
     if !frame.can_add_object(object) {
-        end_game();
+        game_over();
     }
 
     frame.add_object(object); // Re-add object
@@ -110,7 +110,7 @@ fn move_jump(object: &mut AsciiObject, frame: &mut Frame)  -> bool {
 
     // Check if interfering objects
     if !frame.can_add_object(object) {
-        end_game();
+        game_over();
     }
 
     frame.add_object(object); // Re-add object
@@ -118,7 +118,7 @@ fn move_jump(object: &mut AsciiObject, frame: &mut Frame)  -> bool {
 
 }
 
-fn end_game() {
+fn game_over() {
     let ascii_end_game: String  =
     " _______________ \n".to_string() +
     "|               |\n" +
@@ -136,9 +136,26 @@ fn end_game() {
     std::process::exit(0); // TODO better version
 }
 
+fn game_win() {
+    let ascii_end_game: String  =
+    " _____________________________ \n".to_string() +
+    "|                             |\n" +
+    "|   YOU WON (>= 1000 points)  |\n" +
+    "|_____________________________|\n";
+
+    let mut frame = Frame::new('.', 100, 20);  
+
+    let mut end_game_text = AsciiObject::new(ascii_end_game, 35, 8, "none".to_string());
+    frame.add_object(&mut end_game_text);
+
+    clearscreen::clear().expect("Failed to clear screen!");
+    frame.print_frame();
+
+    std::process::exit(0); // TODO better version
+}
+
 fn main() {
     const FRAME_RATE: u64 = 15; // In milliseconds
-
     let ascii_frog: String  =
         " /\\  (•)___(•)  /\\ \n".to_string() +
         " | \\/         \\/ | \n" +
@@ -155,14 +172,13 @@ fn main() {
     let ascii_name_len: usize = ascii_name.len();
     let ascii_name: String = "-".repeat(ascii_name_len) + "\n" + &ascii_name + "\n" + &"-".repeat(ascii_name_len);
 
-    let mut frame = Frame::new('*', 100, 20);  
+    let mut frame = Frame::new(' ', 100, 20);  
 
     let mut frog = AsciiObject::new(ascii_frog, 20, frame.height - 5, "up".to_string());
     let mut mushroom = AsciiObject::new(ascii_mushroom, frame.width - 10, frame.height - 5, "left".to_string());  
     let mut frog_name_text = AsciiObject::new(ascii_name, 5, 1, "none".to_string());
+    let mut points_text = AsciiObject::new("Points: 0".to_string(), frame.width - 15, 2, "none".to_string());
 
-    // frog_name_text.print_object();
-    // loop {}
 
     sleep(Duration::from_millis(1000));
     clearscreen::clear().expect("Failed to clear screen!");
@@ -178,26 +194,47 @@ fn main() {
 
 
     let mut landed:bool = true;
-    let mut frog_frame_rate_count = 0;
+    let mut frog_frame_rate_count: i32 = 0;
+    let mut points_rate_count: i32 = 0;
+    let mut points: i32 = 0;
     loop {
         clearscreen::clear().expect("Failed to clear screen!");
         
         frame.add_object(&mut frog_name_text);
+        frame.add_object(&mut points_text);
+        
+
         move_object_left(&mut mushroom, &mut frame);
 
         // Jump if space is pressed or continue jumping if in mid-jump
+        // Update the frog every 2 iterations
         if (frog_frame_rate_count == 2 && !landed)  ||  is_space_input(){
             landed = move_jump(&mut frog, &mut frame);
             frog_frame_rate_count = 0
         } else {
             frame.add_object(&mut frog);
+            
         }
+
+        // Update the score every 8 iterations
+        if points_rate_count == 8 {
+            points += 1;
+            points_rate_count = 0;
+        }
+        if points >= 1000 {
+            game_win();
+        }
+
         frog_frame_rate_count += 1;
+        points_rate_count += 1;
+
+        // Update points
+        points_text.ascii = AsciiObject::convert_str_to_vector(
+            " Points: ".to_string() + &points.to_string()); 
 
         frame.print_frame();
 
         sleep(Duration::from_millis(FRAME_RATE));
-
 
     }
 

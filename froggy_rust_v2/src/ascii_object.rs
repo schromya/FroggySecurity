@@ -8,14 +8,21 @@ pub struct AsciiObject {
 
 impl AsciiObject {
 
-    
+
     pub fn new(ascii_string:String, x_pos: isize, y_pos: isize, movement_direction:String) -> Self {
         
         // Converts ascii string to vector of vector of chars
+        let ascii: Vec<Vec<char>> = Self::convert_str_to_vector(ascii_string);
+        Self { ascii, x_pos, y_pos, movement_direction}
+    }
+
+    // Converts string to vector of vectors (\n are new rows in the matrix)
+    // This is a static function (accessed like AsciiObject::convert_str_to_vector(...) )
+    pub fn convert_str_to_vector(string:String) ->  Vec<Vec<char>>{
         let mut ascii: Vec<Vec<char>> = Vec::new();
         let mut line = Vec::new();
 
-        for char in ascii_string.chars() {
+        for char in string.chars() {
             if char == '\n' {
                 ascii.push(line);
                 line = Vec::new();
@@ -28,7 +35,8 @@ impl AsciiObject {
             ascii.push(line);
         }
 
-        Self { ascii, x_pos, y_pos, movement_direction}
+        return ascii
+
     }
 
 
