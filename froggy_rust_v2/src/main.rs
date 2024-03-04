@@ -1,5 +1,6 @@
 use std::thread::sleep;
 use std::time::Duration;
+use std::io::{self, Write}; //name
 
 struct AsciiObject {
     ascii: Vec<Vec<char>>, // Each of the rows here need to be the same length 
@@ -107,7 +108,7 @@ fn main() {
         " /\\  (•)___(•)  /\\ \n".to_string() +
         " | \\/         \\/ | \n" +
         "_|  \\         /  |_\n" +
-        "      -------      ";
+        "       -------      ";
 
     let ascii_mushroom: String  =
         "   _______   \n".to_string() +
@@ -116,9 +117,20 @@ fn main() {
         "    |___|    \n";
     
 
-    let mut frog = AsciiObject::new(ascii_frog, 0, 0);
-    let mut mushroom = AsciiObject::new(ascii_mushroom, 0, 0);
+    let mut frog = AsciiObject::new(ascii_frog, 10, 10);
+    let mut mushroom = AsciiObject::new(ascii_mushroom, 10, 10);
     let mut frame = Frame::new('*', 100, 20);
+
+    
+
+    println!("Name your frog to begin!:");//name
+    let mut frog_name = String::new();
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut frog_name).expect("Failed to read line");
+
+    let mut frog_name_text = AsciiObject::new(frog_name, 0, 0);
+
+    frame.add_object(&mut frog_name_text);
 
     //sleep(Duration::from_millis(10000));
     
