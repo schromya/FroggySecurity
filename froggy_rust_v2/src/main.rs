@@ -1,5 +1,6 @@
 use std::thread::sleep;
 use std::time::Duration;
+use std::io::{self, Write}; //name
 
 struct Frog {
     frog_standing: Vec<String>,
@@ -22,9 +23,16 @@ fn main() {
     for _ in 0..10 {layout.insert(0, " ".repeat(18));}
     layout.push("_".repeat(30));
 
+    println!("Name your frog to begin!:");//name
+    let mut frog_name = String::new();
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut frog_name).expect("Failed to read line");
+
     for _ in 0..10 {
         clearscreen::clear().expect("Failed to clear screen!");
         
+        println!("{}", frog_name.trim().to_string());//name
+
         for line in &layout {
             println!("{}", line);
         }
@@ -37,6 +45,9 @@ fn main() {
 
     for _ in 0..11 {
         clearscreen::clear().expect("Failed to clear screen!");
+
+        println!("{}", frog_name.trim().to_string());//name
+
         for line in &layout {
             println!("{}", line);
         }
