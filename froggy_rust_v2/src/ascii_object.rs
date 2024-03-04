@@ -31,6 +31,16 @@ impl AsciiObject {
         Self { ascii, x_pos, y_pos, movement_direction}
     }
 
+
+    pub fn print_object(&mut self) {
+        for column in &self.ascii {
+            for row in column {
+                print!("{}", row);
+            }
+            println!();
+        }
+    }
+
     pub fn get_width(&mut self) -> isize {
         self.ascii.get(0)
                 .expect("Ascii objects should  have at least one element")

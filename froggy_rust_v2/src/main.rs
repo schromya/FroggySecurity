@@ -21,15 +21,15 @@ fn get_frog_name() -> String{
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut frog_name).expect("Failed to read line");
 
-        if frog_name.trim().chars().all(|c| c.is_alphabetic()) {
+        if frog_name.trim().chars().all(|c| c.is_alphabetic()) && frog_name.trim().len() <= 5 {
             println!("Frog name is valid: {}", frog_name.trim());
             break;
         } else {
-            println!("Error! Frog name must contain only letters.");
+            println!("Error! Frog name must contain only letters and be less than 5 characters");
         }
     }
 
-    return frog_name;
+    return frog_name.trim().to_string();
 }
 
 // Check if space is pressed as an input
@@ -70,14 +70,12 @@ fn move_object_left(object: &mut AsciiObject, frame: &mut Frame)  {
 
     // Check if interfering objects
     if !frame.can_add_object(object) {
-        println!("Game Over!");
-        std::process::exit(0); // TODO better version
+        end_game();
     }
 
     frame.add_object(object); // Re-add object
 
 }
-
 
 
 // Move object up and down oscillating
@@ -112,13 +110,30 @@ fn move_jump(object: &mut AsciiObject, frame: &mut Frame)  -> bool {
 
     // Check if interfering objects
     if !frame.can_add_object(object) {
-        println!("Game Over!");
-        std::process::exit(0); // TODO better version
+        end_game();
     }
 
     frame.add_object(object); // Re-add object
     return landed;
 
+}
+
+fn end_game() {
+    let ascii_end_game: String  =
+    " _______________ \n".to_string() +
+    "|               |\n" +
+    "|   GAME OVER   |\n" +
+    "|_______________|\n";
+
+    let mut frame = Frame::new('.', 100, 20);  
+
+    let mut end_game_text = AsciiObject::new(ascii_end_game, 41, 8, "none".to_string());
+    frame.add_object(&mut end_game_text);
+
+    clearscreen::clear().expect("Failed to clear screen!");
+    frame.print_frame();
+
+    std::process::exit(0); // TODO better version
 }
 
 fn main() {
@@ -136,18 +151,31 @@ fn main() {
         "|__o  __|\n" +
         "   |_|   \n";
     
+    let ascii_name: String = "| ".to_string() + &get_frog_name() + " |";
+    let ascii_name_len: usize = ascii_name.len();
+    let ascii_name: String = "-".repeat(ascii_name_len) + "\n" + &ascii_name + "\n" + &"-".repeat(ascii_name_len);
 
     let mut frame = Frame::new('*', 100, 20);  
 
     let mut frog = AsciiObject::new(ascii_frog, 20, frame.height - 5, "up".to_string());
     let mut mushroom = AsciiObject::new(ascii_mushroom, frame.width - 10, frame.height - 5, "left".to_string());  
-    let mut frog_name_text = AsciiObject::new(get_frog_name(), 5, 1, "none".to_string());
+    let mut frog_name_text = AsciiObject::new(ascii_name, 5, 1, "none".to_string());
 
-    
+    // frog_name_text.print_object();
+    // loop {}
 
-    frame.add_object(&mut frog_name_text);
+    sleep(Duration::from_millis(1000));
+    clearscreen::clear().expect("Failed to clear screen!");
+    println!("Game beginning in 3...");
+    sleep(Duration::from_millis(1000));
+    clearscreen::clear().expect("Failed to clear screen!");
+    println!("Game beginning in 3... 2...");
+    sleep(Duration::from_millis(1000));
+    clearscreen::clear().expect("Failed to clear screen!");
+    println!("Game beginning in 3... 2... 1... ");
+    sleep(Duration::from_millis(1000));
 
-    //sleep(Duration::from_millis(10000));
+
 
     let mut landed:bool = true;
     let mut frog_frame_rate_count = 0;
