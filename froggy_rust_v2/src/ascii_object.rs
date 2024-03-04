@@ -40,14 +40,14 @@ impl AsciiObject {
     }
 
 
-    pub fn print_object(&mut self) {
-        for column in &self.ascii {
-            for row in column {
-                print!("{}", row);
-            }
-            println!();
-        }
-    }
+    // pub fn print_object(&mut self) {
+    //     for column in &self.ascii {
+    //         for row in column {
+    //             print!("{}", row);
+    //         }
+    //         println!();
+    //     }
+    // }
 
     pub fn get_width(&mut self) -> isize {
         self.ascii.get(0)
