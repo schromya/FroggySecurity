@@ -1,69 +1,46 @@
 #include <iostream>
 #include <string>
-#include <stdlib.h>
 
-class Frog
-{
+const int screenWidth = 100;
+const int screenHeight = 20;
+unsigned int screenSize = screenWidth * screenHeight;
+std::string screen(screenSize, '*');
 
-public:
-    Frog();
-        void init();
-    void meet();
-    void feed();
-    void chat();
+struct sprite {
+    unsigned int width;
+    unsigned int height;
+    std::string values;
 };
 
-Frog::Frog()
-{
-}
-
-void Frog::init()
-{
-        std::cout << "Welcome to Frog World!" << std::endl;
-}
-void Frog::meet()
-{
-}
-
-void Frog::feed()
-{
-}
-
-void Frog::chat()
-{
-}
-
-int checkAuth(char uname[], char pwd[]){
-        if(strcmp(uname, "admin") == 0 && strcmp(pwd, "password")){
-                return 1;
+void copySprite(sprite image, unsigned int xPos, unsigned int yPos) {
+    for (int y = 0; y < image.height; y++) {
+        for (int x = 0; x < image.width; x++) {
+            if (!(yPos + y < 0 || yPos + y >= screenHeight || xPos + x < 0 || xPos + x >= screenWidth)) {
+                screen[x + y * screenWidth] = image.values[x + y * image.width];
+            }
         }
-        return 0;
+    }
 }
 
-int frogInit(Frog& ourFrog){
-        ourFrog.init();
-        return 1;
+void drawScreen() {
+
+    for (int y = 0; y < screenHeight; y++) {
+        for (int x = 0; x < screenWidth; x++) {
+            std::cout << screen[x + y * screenHeight];
+        }
+        std::cout << "\n";
+    }
+    std::cout << std::flush;
 }
+
 
 int main()
 {
-    Frog myFrog;
+    sprite frogsit;
+    frogsit.width = 20;
+    frogsit.height = 4;
+    frogsit.values = R"(    (•)___(•)        / \ / \ / \        | \         / |        _ | --------- | _)";
 
-    int authenticated = 0;
-    char username[10];
-    char password[64];
-
-    //std::cout << "Please Enter Your Username : ";
-    //std::cin >> username;
-
-    std::cout << "Please Enter Your Password : ";
-    std::cin >> password;
-
-    if (checkAuth(username, password)) {
-        frogInit(myFrog);
-    } else {
-        std::cout << "Wrong Username or Password\n";
-    }
-    return 0;
+    copySprite(frogsit, 10, 10);
+    drawScreen();
 }
-
