@@ -62,12 +62,8 @@ impl Frame {
         let lower_right_x = object.x_pos + object.get_width();
         let lower_right_y = object.y_pos + object.get_height();
 
-        if upper_left_x >= 0 && upper_left_y >= 0 && lower_right_x < self.width 
-        && lower_right_y < self.height {
-            return true;
-        }
-
-        return false;
+        return upper_left_x >= 0 && upper_left_y >= 0 && lower_right_x < self.width 
+            && lower_right_y < self.height 
 
     }
 

@@ -1,6 +1,10 @@
 use std::thread::sleep;
 use std::time::Duration;
 use std::io::{self, Write}; //name
+use crossterm::{
+    event::{self, poll, read, Event, KeyCode},
+    terminal::{disable_raw_mode, enable_raw_mode},
+};
 
 // Import Structs
 mod ascii_object;  
@@ -12,7 +16,7 @@ use frame::Frame;
 fn get_frog_name() -> String{
     let mut frog_name;//name
     loop {
-        println!("Name your frog to begin!(Letters only):");
+        println!("Name your frog to begin! (Letters only):");
         frog_name = String::new();
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut frog_name).expect("Failed to read line");
@@ -26,6 +30,31 @@ fn get_frog_name() -> String{
     }
 
     return frog_name;
+}
+
+// Check if space is pressed as an input
+fn is_space_input() -> bool {
+
+    // Need to use crossterm library bc io stdin isn't asynchronous
+    // Require raw mode to allow reading single key presses
+    enable_raw_mode().expect("Failed to enable raw mode");
+
+    let mut space_pressed = false;
+
+    // Check if there's an event within 0 milliseconds (non-blocking)
+    if poll(Duration::from_millis(0)).expect("Failed to poll for event") {
+        // If there's an event, check if it's a key press
+        if let Ok(Event::Key(key_event)) = read() {
+            space_pressed = key_event.code == KeyCode::Char(' ');
+        }
+    }
+
+    // Disable raw mode to restore terminal behavior
+    disable_raw_mode().expect("Failed to disable raw mode");
+
+    return space_pressed;
+
+
 }
 
 fn move_object_left(object: &mut AsciiObject, frame: &mut Frame)  {
@@ -71,9 +100,13 @@ fn move_object_up(object: &mut AsciiObject, frame: &mut Frame)  {
 }
 
 // Move object up and down oscillating
-fn oscillate_object_vertically(object: &mut AsciiObject, frame: &mut Frame)  {
+// Returns bool of if landed on the ground  (true if landed on ground)
+fn move_jump(object: &mut AsciiObject, frame: &mut Frame)  -> bool {
+
+    let mut landed:bool = false;
 
     frame.remove_object(object); // Remove object from frame
+
 
     if object.movement_direction == "up" {
         object.y_pos -= 1; // Move object position up
@@ -88,8 +121,9 @@ fn oscillate_object_vertically(object: &mut AsciiObject, frame: &mut Frame)  {
         if object.movement_direction == "up" {
             object.movement_direction = "down".to_string();
             object.y_pos = 1;
-        // Else move the object up if its at the botoom.
+        // Else land object if on ground
         } else { // Else down
+            landed = true;
             object.movement_direction = "up".to_string();
             object.y_pos  = frame.height - object.get_height() - 2;
         }
@@ -102,6 +136,7 @@ fn oscillate_object_vertically(object: &mut AsciiObject, frame: &mut Frame)  {
     // }
 
     frame.add_object(object); // Re-add object
+    return landed;
 
 }
 
@@ -123,7 +158,7 @@ fn main() {
 
     let mut frog = AsciiObject::new(ascii_frog, 10, 10, "up".to_string());
     let mut mushroom = AsciiObject::new(ascii_mushroom, 10, 14, "left".to_string());  
-    let mut frog_name_text = AsciiObject::new(get_frog_name(), 5, 14, "none".to_string());
+    let mut frog_name_text = AsciiObject::new(get_frog_name(), 5, 1, "none".to_string());
 
     let mut frame = Frame::new('*', 100, 20);  
 
@@ -131,43 +166,24 @@ fn main() {
 
     //sleep(Duration::from_millis(10000));
 
+    let mut landed:bool = false;
     loop {
         clearscreen::clear().expect("Failed to clear screen!");
         move_object_left(&mut mushroom, &mut frame);
-        oscillate_object_vertically(&mut frog, &mut frame);
+        frame.add_object(&mut frog_name_text);
+
+        // Jump if space is pressed or coninue jumping if in mid-jump
+
+        if !landed  ||  is_space_input(){
+            landed = move_jump(&mut frog, &mut frame);
+        } else {
+            frame.add_object(&mut frog);
+        }
 
         frame.print_frame();
 
         sleep(Duration::from_millis(FRAME_RATE));
 
     }
-    
-    // for i in 0..10 {
-    //     clearscreen::clear().expect("Failed to clear screen!");
-    //     frame.remove_object(&mut frog);
-    //     frog.update_position(10,15 - i);
-    //     frame.add_object(&mut frog);
 
-    //     frame.remove_object(&mut mushroom);
-    //     mushroom.update_position(80 - i, 14);
-    //     frame.add_object(&mut mushroom);
-
-    //     frame.print_frame();
-    //     sleep(Duration::from_millis(FRAME_RATE));
-    // }
-
-    // for i in 0..10 {
-    //     clearscreen::clear().expect("Failed to clear screen!");
-    //     frame.remove_object(&mut frog);
-    //     frog.update_position(10,5 + i);
-    //     frame.add_object(&mut frog);
-
-    //     frame.remove_object(&mut mushroom);
-    //     mushroom.update_position(70 - i, 14);
-    //     frame.add_object(&mut mushroom);
-
-    //     frame.print_frame();
-    //     sleep(Duration::from_millis(FRAME_RATE));
-    // }
-    
 }
