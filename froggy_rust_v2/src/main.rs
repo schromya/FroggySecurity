@@ -2,7 +2,7 @@ use std::thread::sleep;
 use std::time::Duration;
 use std::io::{self, Write}; //name
 use crossterm::{
-    event::{self, poll, read, Event, KeyCode},
+    event::{ poll, read, Event, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode},
 };
 
@@ -69,35 +69,16 @@ fn move_object_left(object: &mut AsciiObject, frame: &mut Frame)  {
     }
 
     // Check if interfering objects
-    // if !frame.can_add_object(object) {
-    //     println!("Game Over!");
-    //     std::process::exit(0); // TODO better version
-    // }
-
-    frame.add_object(object); // Re-add object
-
-}
-
-fn move_object_up(object: &mut AsciiObject, frame: &mut Frame)  {
-
-    frame.remove_object(object); // Remove object from frame
-
-    object.y_pos -= 1; // Move object position up
-
-    // Update positon to bottom of screen if out of bounds on the top
-    if !frame.is_object_in_frame_bounds(object) {
-        object.y_pos = frame.height - object.get_height() - 1;
+    if !frame.can_add_object(object) {
+        println!("Game Over!");
+        std::process::exit(0); // TODO better version
     }
 
-    // Check if interfering objects
-    // if !frame.can_add_object(object) {
-    //     println!("Game Over!");
-    //     std::process::exit(0); // TODO better version
-    // }
-
     frame.add_object(object); // Re-add object
 
 }
+
+
 
 // Move object up and down oscillating
 // Returns bool of if landed on the ground  (true if landed on ground)
@@ -125,15 +106,15 @@ fn move_jump(object: &mut AsciiObject, frame: &mut Frame)  -> bool {
         } else { // Else down
             landed = true;
             object.movement_direction = "up".to_string();
-            object.y_pos  = frame.height - object.get_height() - 2;
+            object.y_pos  = frame.height - object.get_height() - 1;
         }
     }
 
     // Check if interfering objects
-    // if !frame.can_add_object(object) {
-    //     println!("Game Over!");
-    //     std::process::exit(0); // TODO better version
-    // }
+    if !frame.can_add_object(object) {
+        println!("Game Over!");
+        std::process::exit(0); // TODO better version
+    }
 
     frame.add_object(object); // Re-add object
     return landed;
@@ -141,48 +122,54 @@ fn move_jump(object: &mut AsciiObject, frame: &mut Frame)  -> bool {
 }
 
 fn main() {
-    const FRAME_RATE: u64 = 40; // In milliseconds
+    const FRAME_RATE: u64 = 15; // In milliseconds
 
     let ascii_frog: String  =
         " /\\  (•)___(•)  /\\ \n".to_string() +
         " | \\/         \\/ | \n" +
         "_|  \\         /  |_\n" +
-        "       -------      ";
+        "      -------       ";
 
     let ascii_mushroom: String  =
-        "   _______   \n".to_string() +
-        " /       o \\ \n" +
-        "|___  o  ___|\n" +
-        "    |___|    \n";
+        "  _____  \n".to_string() +
+        " /   o \\ \n" +
+        "|__o  __|\n" +
+        "   |_|   \n";
     
 
-    let mut frog = AsciiObject::new(ascii_frog, 10, 10, "up".to_string());
-    let mut mushroom = AsciiObject::new(ascii_mushroom, 10, 14, "left".to_string());  
+    let mut frame = Frame::new('*', 100, 20);  
+
+    let mut frog = AsciiObject::new(ascii_frog, 20, frame.height - 5, "up".to_string());
+    let mut mushroom = AsciiObject::new(ascii_mushroom, frame.width - 10, frame.height - 5, "left".to_string());  
     let mut frog_name_text = AsciiObject::new(get_frog_name(), 5, 1, "none".to_string());
 
-    let mut frame = Frame::new('*', 100, 20);  
+    
 
     frame.add_object(&mut frog_name_text);
 
     //sleep(Duration::from_millis(10000));
 
-    let mut landed:bool = false;
+    let mut landed:bool = true;
+    let mut frog_frame_rate_count = 0;
     loop {
         clearscreen::clear().expect("Failed to clear screen!");
-        move_object_left(&mut mushroom, &mut frame);
+        
         frame.add_object(&mut frog_name_text);
+        move_object_left(&mut mushroom, &mut frame);
 
-        // Jump if space is pressed or coninue jumping if in mid-jump
-
-        if !landed  ||  is_space_input(){
+        // Jump if space is pressed or continue jumping if in mid-jump
+        if (frog_frame_rate_count == 2 && !landed)  ||  is_space_input(){
             landed = move_jump(&mut frog, &mut frame);
+            frog_frame_rate_count = 0
         } else {
             frame.add_object(&mut frog);
         }
+        frog_frame_rate_count += 1;
 
         frame.print_frame();
 
         sleep(Duration::from_millis(FRAME_RATE));
+
 
     }
 
