@@ -23,10 +23,20 @@ fn main() {
     for _ in 0..10 {layout.insert(0, " ".repeat(18));}
     layout.push("_".repeat(30));
 
-    println!("Name your frog to begin!:");//name
-    let mut frog_name = String::new();
-    io::stdout().flush().unwrap();
-    io::stdin().read_line(&mut frog_name).expect("Failed to read line");
+    let mut frog_name;//name
+    loop {
+        println!("Name your frog to begin!(Letters only):");
+        frog_name = String::new();
+        io::stdout().flush().unwrap();
+        io::stdin().read_line(&mut frog_name).expect("Failed to read line");
+
+        if frog_name.trim().chars().all(|c| c.is_alphabetic()) {
+            println!("Frog name is valid: {}", frog_name.trim());
+            break;
+        } else {
+            println!("Error! Frog name must contain only letters.");
+        }
+    }
 
     for _ in 0..10 {
         clearscreen::clear().expect("Failed to clear screen!");
