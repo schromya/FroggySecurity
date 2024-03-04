@@ -2,103 +2,107 @@ use std::thread::sleep;
 use std::time::Duration;
 use std::io::{self, Write}; //name
 
-struct AsciiObject {
-    ascii: Vec<Vec<char>>, // Each of the rows here need to be the same length 
-    //Upper left corner position
-    x_pos:usize,
-    y_pos:usize,
+// Import Structs
+mod ascii_object;  
+use ascii_object::AsciiObject; 
+mod frame;  
+use frame::Frame; 
+
+
+fn get_frog_name() -> String{
+    let mut frog_name;//name
+    loop {
+        println!("Name your frog to begin!(Letters only):");
+        frog_name = String::new();
+        io::stdout().flush().unwrap();
+        io::stdin().read_line(&mut frog_name).expect("Failed to read line");
+
+        if frog_name.trim().chars().all(|c| c.is_alphabetic()) {
+            println!("Frog name is valid: {}", frog_name.trim());
+            break;
+        } else {
+            println!("Error! Frog name must contain only letters.");
+        }
+    }
+
+    return frog_name;
 }
 
-impl AsciiObject {
+fn move_object_left(object: &mut AsciiObject, frame: &mut Frame)  {
 
-    
-    fn new(ascii_string:String, x_pos: usize, y_pos: usize) -> Self {
-        
-        // Converts ascii string to vector of vector of chars
-        let mut ascii: Vec<Vec<char>> = Vec::new();
-        let mut line = Vec::new();
+    frame.remove_object(object); // Remove object from frame
 
-        for char in ascii_string.chars() {
-            if char == '\n' {
-                ascii.push(line);
-                line = Vec::new();
-            } else {
-                line.push(char);
-            }
-        }
-        if !line.is_empty() {
-            // Push last line
-            ascii.push(line);
-        }
+    object.x_pos -= 1; // Move object position left
 
-        Self { ascii, x_pos, y_pos }
+    // Update positon to right of screen if out of bounds on the left
+    if !frame.is_object_in_frame_bounds(object) {
+        object.x_pos = frame.width - object.get_width() - 1;
     }
 
-    fn print_object(&mut self) {
-        for column in &self.ascii {
-            for row in column {
-                print!("{}", row);
-            }
-            println!();
-        }
-    }
+    // Check if interfering objects
+    // if !frame.can_add_object(object) {
+    //     println!("Game Over!");
+    //     std::process::exit(0); // TODO better version
+    // }
 
-    fn get_width(&mut self) -> usize {
-        self.ascii.get(0)
-                .expect("Ascii objects should  have at least one element")
-                .len()
-    }
-    fn get_height(&mut self) -> usize {
-        self.ascii.len()
-    }
+    frame.add_object(object); // Re-add object
 
-    fn update_position(&mut self, x_pos:usize, y_pos:usize) {
-        self.x_pos = x_pos;
-        self.y_pos = y_pos;
-    }
 }
 
-struct Frame {
-    filler_char: char,
-    ascii: Vec<Vec<char>>,
-    width: usize,
-    height: usize,
+fn move_object_up(object: &mut AsciiObject, frame: &mut Frame)  {
+
+    frame.remove_object(object); // Remove object from frame
+
+    object.y_pos -= 1; // Move object position up
+
+    // Update positon to bottom of screen if out of bounds on the top
+    if !frame.is_object_in_frame_bounds(object) {
+        object.y_pos = frame.height - object.get_height() - 1;
+    }
+
+    // Check if interfering objects
+    // if !frame.can_add_object(object) {
+    //     println!("Game Over!");
+    //     std::process::exit(0); // TODO better version
+    // }
+
+    frame.add_object(object); // Re-add object
+
 }
 
-impl Frame {
-    
-    fn print_frame(&mut self) {
-        for column in &self.ascii {
-            for row in column {
-                print!("{}", row);
-            }
-            println!();
-        }
-    }
-    fn new(filler_char: char, width: usize, height: usize) -> Self {
-        let ascii = vec![vec![filler_char; width]; height];
-        Self { filler_char, ascii, width, height }
+// Move object up and down oscillating
+fn oscillate_object_vertically(object: &mut AsciiObject, frame: &mut Frame)  {
+
+    frame.remove_object(object); // Remove object from frame
+
+    if object.movement_direction == "up" {
+        object.y_pos -= 1; // Move object position up
+    } else { // Else down
+        object.y_pos += 1; // Move object position down
     }
 
-    fn add_object(&mut self,  object: &mut AsciiObject) {
-        // Replace each line
-        for i in 0..object.get_height() {
-            // Replace each character in the line
-            for j in 0..object.get_width() {
-                self.ascii[i + object.y_pos][j +  object.x_pos] = object.ascii[i][j];
-            }
+    // Update positon to bottom of screen if out of bounds on the top
+    if !frame.is_object_in_frame_bounds(object) {
+
+        // Start moving the object down if currently at top
+        if object.movement_direction == "up" {
+            object.movement_direction = "down".to_string();
+            object.y_pos = 1;
+        // Else move the object up if its at the botoom.
+        } else { // Else down
+            object.movement_direction = "up".to_string();
+            object.y_pos  = frame.height - object.get_height() - 2;
         }
     }
 
-    fn remove_object(&mut self,  object: &mut AsciiObject) {
-        // Replace each line
-        for i in 0..object.get_height() {
-            // Replace each character in the line
-            for j in 0..object.get_width() {
-                self.ascii[i + object.y_pos][j +  object.x_pos] = self.filler_char;
-            }
-        }
-    }
+    // Check if interfering objects
+    // if !frame.can_add_object(object) {
+    //     println!("Game Over!");
+    //     std::process::exit(0); // TODO better version
+    // }
+
+    frame.add_object(object); // Re-add object
+
 }
 
 fn main() {
@@ -117,59 +121,53 @@ fn main() {
         "    |___|    \n";
     
 
-    let mut frog = AsciiObject::new(ascii_frog, 10, 10);
-    let mut mushroom = AsciiObject::new(ascii_mushroom, 10, 10);
-    let mut frame = Frame::new('*', 100, 20);
+    let mut frog = AsciiObject::new(ascii_frog, 10, 10, "up".to_string());
+    let mut mushroom = AsciiObject::new(ascii_mushroom, 10, 14, "left".to_string());  
+    let mut frog_name_text = AsciiObject::new(get_frog_name(), 5, 14, "none".to_string());
 
-    
-
-    let mut frog_name;//name
-    loop {
-        println!("Name your frog to begin!(Letters only):");
-        frog_name = String::new();
-        io::stdout().flush().unwrap();
-        io::stdin().read_line(&mut frog_name).expect("Failed to read line");
-
-        if frog_name.trim().chars().all(|c| c.is_alphabetic()) {
-            println!("Frog name is valid: {}", frog_name.trim());
-            break;
-        } else {
-            println!("Error! Frog name must contain only letters.");
-        }
-    }
-
-    let mut frog_name_text = AsciiObject::new(frog_name, 0, 0);
+    let mut frame = Frame::new('*', 100, 20);  
 
     frame.add_object(&mut frog_name_text);
 
     //sleep(Duration::from_millis(10000));
+
+    loop {
+        clearscreen::clear().expect("Failed to clear screen!");
+        move_object_left(&mut mushroom, &mut frame);
+        oscillate_object_vertically(&mut frog, &mut frame);
+
+        frame.print_frame();
+
+        sleep(Duration::from_millis(FRAME_RATE));
+
+    }
     
-    for i in 0..10 {
-        clearscreen::clear().expect("Failed to clear screen!");
-        frame.remove_object(&mut frog);
-        frog.update_position(10,15 - i);
-        frame.add_object(&mut frog);
+    // for i in 0..10 {
+    //     clearscreen::clear().expect("Failed to clear screen!");
+    //     frame.remove_object(&mut frog);
+    //     frog.update_position(10,15 - i);
+    //     frame.add_object(&mut frog);
 
-        frame.remove_object(&mut mushroom);
-        mushroom.update_position(80 - i, 14);
-        frame.add_object(&mut mushroom);
+    //     frame.remove_object(&mut mushroom);
+    //     mushroom.update_position(80 - i, 14);
+    //     frame.add_object(&mut mushroom);
 
-        frame.print_frame();
-        sleep(Duration::from_millis(FRAME_RATE));
-    }
+    //     frame.print_frame();
+    //     sleep(Duration::from_millis(FRAME_RATE));
+    // }
 
-    for i in 0..10 {
-        clearscreen::clear().expect("Failed to clear screen!");
-        frame.remove_object(&mut frog);
-        frog.update_position(10,5 + i);
-        frame.add_object(&mut frog);
+    // for i in 0..10 {
+    //     clearscreen::clear().expect("Failed to clear screen!");
+    //     frame.remove_object(&mut frog);
+    //     frog.update_position(10,5 + i);
+    //     frame.add_object(&mut frog);
 
-        frame.remove_object(&mut mushroom);
-        mushroom.update_position(70 - i, 14);
-        frame.add_object(&mut mushroom);
+    //     frame.remove_object(&mut mushroom);
+    //     mushroom.update_position(70 - i, 14);
+    //     frame.add_object(&mut mushroom);
 
-        frame.print_frame();
-        sleep(Duration::from_millis(FRAME_RATE));
-    }
+    //     frame.print_frame();
+    //     sleep(Duration::from_millis(FRAME_RATE));
+    // }
     
 }
