@@ -1,11 +1,13 @@
 #include <iostream>
 #include <string>
+#include <stdlib.h>
 
 class Frog
 {
 
 public:
     Frog();
+        void init();
     void meet();
     void feed();
     void chat();
@@ -13,11 +15,12 @@ public:
 
 Frog::Frog()
 {
-    std::cout << "Welcome to Frog World!" << std::endl;
-
-    // TODO give options
 }
 
+void Frog::init()
+{
+        std::cout << "Welcome to Frog World!" << std::endl;
+}
 void Frog::meet()
 {
 }
@@ -30,27 +33,37 @@ void Frog::chat()
 {
 }
 
+int checkAuth(char uname[], char pwd[]){
+        if(strcmp(uname, "admin") == 0 && strcmp(pwd, "password")){
+                return 1;
+        }
+        return 0;
+}
+
+int frogInit(Frog& ourFrog){
+        ourFrog.init();
+        return 1;
+}
+
 int main()
 {
     Frog myFrog;
-    
+
     int authenticated = 0;
     char username[10];
-    char password[10];
+    char password[64];
 
-    std::cout << "Please Enter Your Username : ";
-    std::cin >> username;
+    //std::cout << "Please Enter Your Username : ";
+    //std::cin >> username;
 
     std::cout << "Please Enter Your Password : ";
     std::cin >> password;
 
-    if (std::strcmp(username, "admin") == 0 && std::strcmp(password, "password") == 0) {
-        authenticated = 1;
-    }
-    if (authenticated) {
-        std::cout << "You're In.\n";
+    if (checkAuth(username, password)) {
+        frogInit(myFrog);
     } else {
         std::cout << "Wrong Username or Password\n";
     }
     return 0;
 }
+
