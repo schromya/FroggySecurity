@@ -3,12 +3,13 @@ pub struct AsciiObject {
     //Upper left corner position
     pub x_pos:isize,
     pub y_pos:isize,
+    pub movement_direction:String,  // TODO make this enum?
 }
 
 impl AsciiObject {
 
     
-    pub fn new(ascii_string:String, x_pos: isize, y_pos: isize) -> Self {
+    pub fn new(ascii_string:String, x_pos: isize, y_pos: isize, movement_direction:String) -> Self {
         
         // Converts ascii string to vector of vector of chars
         let mut ascii: Vec<Vec<char>> = Vec::new();
@@ -27,7 +28,7 @@ impl AsciiObject {
             ascii.push(line);
         }
 
-        Self { ascii, x_pos, y_pos }
+        Self { ascii, x_pos, y_pos, movement_direction}
     }
 
     pub fn print_object(&mut self) {

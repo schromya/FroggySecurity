@@ -53,7 +53,7 @@ fn move_object_up(object: &mut AsciiObject, frame: &mut Frame)  {
 
     frame.remove_object(object); // Remove object from frame
 
-    object.y_pos -= 1; // Move object position left
+    object.y_pos -= 1; // Move object position up
 
     // Update positon to bottom of screen if out of bounds on the top
     if !frame.is_object_in_frame_bounds(object) {
@@ -70,15 +70,29 @@ fn move_object_up(object: &mut AsciiObject, frame: &mut Frame)  {
 
 }
 
-fn move_object_vertically(object: &mut AsciiObject, frame: &mut Frame)  {
+// Move object up and down oscillating
+fn oscillate_object_vertically(object: &mut AsciiObject, frame: &mut Frame)  {
 
     frame.remove_object(object); // Remove object from frame
 
-    object.y_pos -= 1; // Move object position left
+    if object.movement_direction == "up" {
+        object.y_pos -= 1; // Move object position up
+    } else { // Else down
+        object.y_pos += 1; // Move object position down
+    }
 
     // Update positon to bottom of screen if out of bounds on the top
     if !frame.is_object_in_frame_bounds(object) {
-        object.y_pos = frame.height - object.get_height() - 1;
+
+        // Start moving the object down if currently at top
+        if object.movement_direction == "up" {
+            object.movement_direction = "down".to_string();
+            object.y_pos = 1;
+        // Else move the object up if its at the botoom.
+        } else { // Else down
+            object.movement_direction = "up".to_string();
+            object.y_pos  = frame.height - object.get_height() - 2;
+        }
     }
 
     // Check if interfering objects
@@ -107,9 +121,9 @@ fn main() {
         "    |___|    \n";
     
 
-    let mut frog = AsciiObject::new(ascii_frog, 10, 10);
-    let mut mushroom = AsciiObject::new(ascii_mushroom, 10, 14);  
-    let mut frog_name_text = AsciiObject::new(get_frog_name(), 5, 14);
+    let mut frog = AsciiObject::new(ascii_frog, 10, 10, "up".to_string());
+    let mut mushroom = AsciiObject::new(ascii_mushroom, 10, 14, "left".to_string());  
+    let mut frog_name_text = AsciiObject::new(get_frog_name(), 5, 14, "none".to_string());
 
     let mut frame = Frame::new('*', 100, 20);  
 
@@ -120,7 +134,7 @@ fn main() {
     loop {
         clearscreen::clear().expect("Failed to clear screen!");
         move_object_left(&mut mushroom, &mut frame);
-        move_object_up(&mut frog, &mut frame);
+        oscillate_object_vertically(&mut frog, &mut frame);
 
         frame.print_frame();
 
