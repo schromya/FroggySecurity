@@ -1,14 +1,14 @@
 pub struct AsciiObject {
     pub ascii: Vec<Vec<char>>, // Each of the rows here need to be the same length 
     //Upper left corner position
-    pub x_pos:usize,
-    pub y_pos:usize,
+    pub x_pos:isize,
+    pub y_pos:isize,
 }
 
 impl AsciiObject {
 
     
-    pub fn new(ascii_string:String, x_pos: usize, y_pos: usize) -> Self {
+    pub fn new(ascii_string:String, x_pos: isize, y_pos: isize) -> Self {
         
         // Converts ascii string to vector of vector of chars
         let mut ascii: Vec<Vec<char>> = Vec::new();
@@ -39,16 +39,16 @@ impl AsciiObject {
         }
     }
 
-    pub fn get_width(&mut self) -> usize {
+    pub fn get_width(&mut self) -> isize {
         self.ascii.get(0)
                 .expect("Ascii objects should  have at least one element")
-                .len()
+                .len() as isize
     }
-    pub fn get_height(&mut self) -> usize {
-        self.ascii.len()
+    pub fn get_height(&mut self) -> isize {
+        self.ascii.len() as isize
     }
 
-    pub fn update_position(&mut self, x_pos:usize, y_pos:usize) {
+    pub fn update_position(&mut self, x_pos:isize, y_pos:isize) {
         self.x_pos = x_pos;
         self.y_pos = y_pos;
     }
