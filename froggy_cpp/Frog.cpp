@@ -1,10 +1,10 @@
 #include <iostream>
 #include <string>
-#include <chrono>
 #include <thread>
+#include <conio.h>
 #include <Windows.h>
 #include <random>
-
+#include <chrono>
 
 const int screenWidth = 120;
 const int screenHeight = 20;
@@ -72,10 +72,20 @@ int main()
     frogsit.height = 4;
     frogsit.values = R"(   (•)___(•)    /\ /     \ /\  | \       / | _| --------- |_)";
 
+    sprite frogdead;
+    frogdead.width = 15;
+    frogdead.height = 4;
+    frogdead.values = R"(   (x)___(x)    /\ /     \ /\  | \       / | _| --------- |_)";
+
     sprite frogjump;
     frogjump.width = 15;
     frogjump.height = 6;
     frogjump.values = R"(   (•)___(•)     /         \   |\         /\  |  -------  |  |           |  /           \ )";
+
+    sprite frogdeadjump;
+    frogdeadjump.width = 15;
+    frogdeadjump.height = 6;
+    frogdeadjump.values = R"(   (x)___(x)     /         \   |\         /\  |  -------  |  |           |  /           \ )";
 
     sprite mushroomTall;
     mushroomTall.width = 13;
@@ -90,66 +100,113 @@ int main()
     std::string name;
     std::cout << "What is your name? Max 10 letters" << std::endl;
     std::getline(std::cin, name);
-
-    /*
+    system("cls");
+    std::cout << "Starting in 3. . ." << std::flush;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::cout << " 2. . ." << std::flush;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::cout << " 1. . ." << std::flush;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    
     if (name.size() < 10) {
-        for (int i = 0; i < 10 - name.size(); i++) {
+        int temp = name.size();
+        for (int i = 0; i < 10 - temp; i++) {
             name += " ";
         }
-    } else if (name.size() > 10) {
-
     }
-    */
+    
     sprite nametag;
     nametag.width = 12;
     nametag.height = 3;
-    nametag.values = R"(============|John Cena |============)";
+    nametag.values = "============|"+ name +"|============";
     
     sprite score;
     int currentScore = 0;
     score.width = 12;
     score.height = 1;
-    //score.values = R"(Score : 0)";
+
+    sprite gameOver;
+    gameOver.width = 19;
+    gameOver.height = 5;
+    gameOver.values = "===================|                 ||    GAME OVER    ||                 |===================";
 
     int mushroomPos = 0;
     int frogPos = 0;
-    bool frogHasWings = true;
+    bool frogHasWings = false;
     bool isTall = std::rand() % 2;
+    bool isAlive = true;
     while (true) {
 
+        // Updated Score
         updateScore(&score, currentScore);
         if (mushroomPos > screenWidth + mushroomShort.width) {
             mushroomPos = 0;
             isTall = std::rand() % 2;
         }
-        if (frogHasWings && frogPos > -10) {
-            frogPos--;
-        } else {
-            if (frogPos < 0) {
-                frogHasWings = false;
-                frogPos++;
+
+        if (isAlive) {
+            // Collision
+            // X Axis Collision
+            if (screenWidth - mushroomShort.width - mushroomPos <= 33 && screenWidth - mushroomPos >= 20) {
+                // Y Axis Collision
+                if (16 + frogPos + 4 > 16) {
+                    isAlive = false;
+                }
+            }
+
+            // Frog Animation State
+            if (frogHasWings && frogPos > -15) {
+                frogPos--;
             } else {
-                frogHasWings = true;
+                if (frogPos < 0) {
+                    frogHasWings = false;
+                    frogPos++;
+                } else {
+                    if (_kbhit()) {
+                        frogHasWings = true;
+                        _getch();
+                    }
+                }
             }
         }
 
+        // Clear Screen
         resetScreen();
-        if (frogHasWings) {
-            copySprite(frogjump, 20, 16 + frogPos);
+
+        // Draw Frog
+        if (isAlive) {
+            if (frogHasWings) {
+                copySprite(frogjump, 20, 16 + frogPos);
+            } else {
+                copySprite(frogsit, 20, 16 + frogPos);
+            }
         } else {
-            copySprite(frogsit, 20, 16 + frogPos);
+            if (frogHasWings) {
+                copySprite(frogdeadjump, 20, 16 + frogPos);
+            } else {
+                copySprite(frogdead, 20, 16 + frogPos);
+            }
         }
+        // Draw Mushroom
         if (isTall) {
             copySprite(mushroomTall , screenWidth - mushroomShort.width - mushroomPos, 15);
         } else {
             copySprite(mushroomShort, screenWidth - mushroomShort.width - mushroomPos, 16);
         }
+        // Draw UI
         copySprite(nametag, 3, 1);
         copySprite(score, screenWidth - score.width - 5, 2);
+
+
+        if (isAlive) {
+            mushroomPos++;
+            mushroomPos++;
+            currentScore++;
+        } else {
+            copySprite(gameOver, (screenWidth - gameOver.width) / 2, (screenHeight - gameOver.height) / 2);
+        }
+
+        // Update Screen
         drawScreen();
-        mushroomPos++;
-        mushroomPos++;
-        currentScore++;
-        //std::this_thread::sleep_for(std::chrono::milliseconds(15));
     }
 }
