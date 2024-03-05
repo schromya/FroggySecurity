@@ -58,6 +58,16 @@ void updateScore(sprite * image, int score) {
     image->values = R"(Score : )" + std::to_string(score);
 }
 
+void startScreen() {
+    system("cls");
+    std::cout << "Starting in 3. . ." << std::flush;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::cout << " 2. . ." << std::flush;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::cout << " 1. . ." << std::flush;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+}
+
 int main()
 {
     // Hide the Cursor
@@ -100,13 +110,7 @@ int main()
     std::string name;
     std::cout << "What is your name? Max 10 letters" << std::endl;
     std::getline(std::cin, name);
-    system("cls");
-    std::cout << "Starting in 3. . ." << std::flush;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    std::cout << " 2. . ." << std::flush;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    std::cout << " 1. . ." << std::flush;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    //startScreen();
     
     if (name.size() < 10) {
         int temp = name.size();
@@ -126,9 +130,9 @@ int main()
     score.height = 1;
 
     sprite gameOver;
-    gameOver.width = 19;
-    gameOver.height = 5;
-    gameOver.values = "===================|                 ||    GAME OVER    ||                 |===================";
+    gameOver.width = 28;
+    gameOver.height = 6;
+    gameOver.values = "============================|                          ||        GAME  OVER        || Press Any Key To Restart ||                          |============================";
 
     int mushroomPos = 0;
     int frogPos = 0;
@@ -167,8 +171,18 @@ int main()
                     }
                 }
             }
+            if (_kbhit()) _getch();
+        } else {
+            if (_kbhit()) {
+                isAlive = true;
+                currentScore = 0;
+                mushroomPos = 0;
+                frogPos = 0;
+                frogHasWings = false;
+                _getch();
+                startScreen();
+            }
         }
-        if(_kbhit()) _getch();
 
         // Clear Screen
         resetScreen();
