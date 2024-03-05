@@ -164,11 +164,11 @@ int main()
                 } else {
                     if (_kbhit()) {
                         frogHasWings = true;
-                        _getch();
                     }
                 }
             }
         }
+        if(_kbhit()) _getch();
 
         // Clear Screen
         resetScreen();
@@ -199,8 +199,7 @@ int main()
 
 
         if (isAlive) {
-            mushroomPos++;
-            mushroomPos++;
+            mushroomPos += std::ceil(float(currentScore) / 150.0f) + 1;
             currentScore++;
         } else {
             copySprite(gameOver, (screenWidth - gameOver.width) / 2, (screenHeight - gameOver.height) / 2);
