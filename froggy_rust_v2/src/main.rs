@@ -80,17 +80,21 @@ fn move_object_left(object: &mut AsciiObject, frame: &mut Frame)  {
 
 // Move object up and down oscillating
 // Returns bool of if landed on the ground  (true if landed on ground)
-fn move_jump(object: &mut AsciiObject, frame: &mut Frame)  -> bool {
+fn move_jump(object: &mut AsciiObject, frame: &mut Frame,ascii_jumping_frog: &String, ascii_frog: &String)  -> bool {
 
     let mut landed:bool = false;
 
-    frame.remove_object(object); // Remove object from frame
+    frame.remove_object(object); // Remove object from frameF
 
 
     if object.movement_direction == "up" {
         object.y_pos -= 1; // Move object position up
+        object.ascii = AsciiObject::convert_str_to_vector(ascii_jumping_frog.clone());
     } else { // Else down
         object.y_pos += 1; // Move object position down
+        if object.y_pos  == frame.height - object.get_height() - 1 { // Check if object landed
+            object.ascii = AsciiObject::convert_str_to_vector(ascii_frog.clone());
+        }
     }
 
     // Update positon to bottom of screen if out of bounds on the top
@@ -162,6 +166,18 @@ fn main() {
         "_|  \\         /  |_\n" +
         "      -------       ";
 
+    // let ascii_jumping_frog: String  =
+    //     "  (•)___(•)  \n".to_string() +
+    //     " /         \\ \n" +
+    //     "|\\         /\\ \n" +
+    //     "|  -------  | \n";      
+          
+    let ascii_jumping_frog: String  =
+    "   \\ (•)___(•) /   \n".to_string() +
+    "     \\       /     \n" +
+    "      |  |  |      \n" +
+    "      |  |  |      \n";
+
     let ascii_mushroom: String  =
         "  _____  \n".to_string() +
         " /   o \\ \n" +
@@ -174,7 +190,7 @@ fn main() {
 
     let mut frame = Frame::new(' ', 100, 20);  
 
-    let mut frog = AsciiObject::new(ascii_frog, 20, frame.height - 5, "up".to_string());
+    let mut frog = AsciiObject::new(ascii_frog.clone(), 20, frame.height - 5, "up".to_string());
     let mut mushroom = AsciiObject::new(ascii_mushroom, frame.width - 10, frame.height - 5, "left".to_string());  
     let mut frog_name_text = AsciiObject::new(ascii_name, 5, 1, "none".to_string());
     let mut points_text = AsciiObject::new("Points: 0".to_string(), frame.width - 15, 2, "none".to_string());
@@ -194,6 +210,8 @@ fn main() {
 
 
     let mut landed:bool = true;
+    let mut is_frog_jumping = false;
+
     let mut frog_frame_rate_count: i32 = 0;
     let mut points_rate_count: i32 = 0;
     let mut points: i32 = 0;
@@ -209,7 +227,15 @@ fn main() {
         // Jump if space is pressed or continue jumping if in mid-jump
         // Update the frog every 2 iterations
         if (frog_frame_rate_count == 2 && !landed)  ||  is_space_input(){
-            landed = move_jump(&mut frog, &mut frame);
+            if !is_frog_jumping { // Start of jump
+                is_frog_jumping = true;
+                frog.ascii = AsciiObject::convert_str_to_vector(ascii_jumping_frog.clone());
+            }
+            landed = move_jump(&mut frog, &mut frame, &ascii_jumping_frog, &ascii_frog);
+            if landed { // End of jump
+                is_frog_jumping = false;
+                frog.ascii = AsciiObject::convert_str_to_vector(ascii_frog.clone());
+            }
             frog_frame_rate_count = 0
         } else {
             frame.add_object(&mut frog);
