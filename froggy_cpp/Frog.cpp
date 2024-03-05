@@ -112,7 +112,7 @@ int main()
     int currentScore = 0;
     std::cout << "What is your name? Max 10 letters" << std::endl;
     std::cin >> charName;
-    name = charName;
+    for (int i = 0; i < 10; i++) name += charName[i];
     startScreen();
     
     if (name.size() < 10) {
