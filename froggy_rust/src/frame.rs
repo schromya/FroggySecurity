@@ -6,9 +6,23 @@ pub struct Frame {
     pub ascii: Vec<Vec<char>>,
     pub width: isize,
     pub height: isize,
+    pub score: isize,
 }
 
 impl Frame {
+
+    pub fn new(filler_char: char, width: isize, height: isize, score:isize) -> Self {
+        let ascii = vec![vec![filler_char; width as usize]; height as usize];
+        Self {
+            filler_char,
+            ascii,
+            width,
+            height,
+            score
+        }
+    }
+
+
     pub fn print_frame(&mut self) {
         for column in &self.ascii {
             for row in column {
@@ -17,28 +31,18 @@ impl Frame {
             println!();
         }
     }
-    pub fn new(filler_char: char, width: isize, height: isize) -> Self {
-        let ascii = vec![vec![filler_char; width as usize]; height as usize];
-        Self {
-            filler_char,
-            ascii,
-            width,
-            height,
-        }
-    }
 
-    // // Checks if there is an object in the frame within the passed bounds (that starts at {x_pos, y_pos}
-    // // extends right by width, and down by height)
-    // pub fn is_object_in_bounds(&mut self, x_pos:usize, y_pos:usize, width:usize, height:usize ) -> bool {
-    //     for i in 0..height {
-    //         for j in 0..width {
-    //             if self.ascii[i + y_pos][j + x_pos] != self.filler_char {
-    //                 return true;
-    //             };
+    // // Clears frame by filling it with filler_char
+    // pub fn clear_frame(&mut self) {
+    //     // Replace each line
+    //     for i in 0..self.height as usize {
+    //         // Replace each character in the line
+    //         for j in 0..self.width as usize {
+    //             self.ascii[i][j] = self.filler_char;
     //         }
     //     }
-    //     return false;
     // }
+
 
     // Checks if you can place the object in the frame by seeing if there is any other object already there
     pub fn can_add_object(&mut self, object: &mut AsciiObject) -> bool {

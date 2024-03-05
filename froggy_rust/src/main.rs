@@ -13,6 +13,8 @@ mod frame;
 use frame::Frame; 
 
 
+
+
 fn get_frog_name() -> String{
     let mut frog_name;//name
     loop {
@@ -70,7 +72,8 @@ fn move_object_left(object: &mut AsciiObject, frame: &mut Frame)  {
 
     // Check if interfering objects
     if !frame.can_add_object(object) {
-        game_over();
+        game_over(frame);
+        object.x_pos = frame.width - object.get_width() - 1; // Reset position
     }
 
     frame.add_object(object); // Re-add object
@@ -114,7 +117,11 @@ fn move_jump(object: &mut AsciiObject, frame: &mut Frame,ascii_jumping_frog: &St
 
     // Check if interfering objects
     if !frame.can_add_object(object) {
-        game_over();
+        game_over(frame);
+
+        // Reset position to top
+        object.movement_direction = "down".to_string();
+        object.y_pos = 1;
     }
 
     frame.add_object(object); // Re-add object
@@ -122,14 +129,13 @@ fn move_jump(object: &mut AsciiObject, frame: &mut Frame,ascii_jumping_frog: &St
 
 }
 
-fn game_over() {
+fn game_over(frame:&mut Frame) {
     let ascii_end_game: String  =
-    " _______________ \n".to_string() +
-    "|               |\n" +
-    "|   GAME OVER   |\n" +
-    "|_______________|\n";
-
-    let mut frame = Frame::new('.', 100, 20);  
+        " _____________________________ \n".to_string() +
+        "|                             |\n" +
+        "|          GAME OVER          |\n" +
+        "|   Press ENTER to continue   |\n" +
+        "|_____________________________|\n";
 
     let mut end_game_text = AsciiObject::new(ascii_end_game, 41, 8, "none".to_string());
     frame.add_object(&mut end_game_text);
@@ -137,7 +143,11 @@ fn game_over() {
     clearscreen::clear().expect("Failed to clear screen!");
     frame.print_frame();
 
-    std::process::exit(0); // TODO better version
+    // Waits until enter is pressed
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("Failed to read line");
+    frame.remove_object(&mut end_game_text);
+    frame.score = 0;
 }
 
 fn game_win() {
@@ -147,7 +157,7 @@ fn game_win() {
     "|   YOU WON (>= 1000 points)  |\n" +
     "|_____________________________|\n";
 
-    let mut frame = Frame::new('.', 100, 20);  
+    let mut frame = Frame::new('.', 100, 20, 0);  
 
     let mut end_game_text = AsciiObject::new(ascii_end_game, 35, 8, "none".to_string());
     frame.add_object(&mut end_game_text);
@@ -168,12 +178,7 @@ fn main() {
         "_|  \\         /  |_\n" +
         "      -------      ";
 
-    // let ascii_jumping_frog: String  =
-    //     "  (•)___(•)  \n".to_string() +
-    //     " /         \\ \n" +
-    //     "|\\         /\\ \n" +
-    //     "|  -------  | \n";      
-          
+
     let ascii_jumping_frog: String  =
     "      (•)___(•)    \n".to_string() +
     "     /         \\   \n" +
@@ -182,27 +187,26 @@ fn main() {
     "    |           |  \n" +
     "    /           \\  ";
 
-    // "   \\ (•)___(•) /   \n".to_string() +
-    // "     \\       /     \n" +
-    // "      |  |  |      \n" +
-    // "      |  |  |      \n";
 
     let ascii_mushroom: String  =
         "  _____  \n".to_string() +
         " /   o \\ \n" +
         "|__o  __|\n" +
         "   |_|   \n";
+
+
     
     let ascii_name: String = "| ".to_string() + &get_frog_name() + " |";
     let ascii_name_len: usize = ascii_name.len();
     let ascii_name: String = "-".repeat(ascii_name_len) + "\n" + &ascii_name + "\n" + &"-".repeat(ascii_name_len);
 
-    let mut frame = Frame::new(' ', 100, 20);  
+    let mut frame = Frame::new(' ', 100, 20, 0);  
 
     let mut frog = AsciiObject::new(ascii_frog.clone(), 20, frame.height - 7, "up".to_string());
     let mut mushroom = AsciiObject::new(ascii_mushroom, frame.width - 10, frame.height - 5, "left".to_string());  
     let mut frog_name_text = AsciiObject::new(ascii_name, 5, 1, "none".to_string());
     let mut points_text = AsciiObject::new("Points: 0".to_string(), frame.width - 15, 2, "none".to_string());
+
 
     sleep(Duration::from_millis(1000));
     clearscreen::clear().expect("Failed to clear screen!");
@@ -221,11 +225,11 @@ fn main() {
 
     let mut frog_frame_rate_count: i32 = 0;
     let mut points_rate_count: i32 = 0;
-    let mut points: i32 = 0;
     loop {
         clearscreen::clear().expect("Failed to clear screen!");
         
         frame.add_object(&mut frog_name_text);
+
         frame.add_object(&mut points_text);
         
 
@@ -238,7 +242,8 @@ fn main() {
                 is_frog_jumping = true;
                 frog.ascii = AsciiObject::convert_str_to_vector(ascii_jumping_frog.clone());
             }
-            landed = move_jump(&mut frog, &mut frame, &ascii_jumping_frog, &ascii_frog);
+            landed =move_jump(&mut frog, &mut frame, &ascii_jumping_frog, &ascii_frog);
+
             if landed { // End of jump
                 is_frog_jumping = false;
                 frog.ascii = AsciiObject::convert_str_to_vector(ascii_frog.clone());
@@ -251,19 +256,18 @@ fn main() {
 
         // Update the score every 8 iterations
         if points_rate_count == 8 {
-            points += 1;
+            frame.score += 1;
             points_rate_count = 0;
         }
-        if points >= 1000 {
+        if frame.score >= 1000 {
             game_win();
         }
 
         frog_frame_rate_count += 1;
         points_rate_count += 1;
 
-        // Update points
-        points_text.ascii = AsciiObject::convert_str_to_vector(
-            " Points: ".to_string() + &points.to_string()); 
+        // Update points (always 4 characters wide)
+        points_text.ascii = AsciiObject::convert_str_to_vector(format!(" Points: {:>4}", frame.score)); 
 
         frame.print_frame();
 
