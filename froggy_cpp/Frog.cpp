@@ -108,9 +108,12 @@ int main()
     mushroomShort.values = R"(   _______     /  o    \   |___ o ___|     |___|             )";
 
     std::string name;
+    char charName[10];
+    int currentScore = 0;
     std::cout << "What is your name? Max 10 letters" << std::endl;
-    std::getline(std::cin, name);
-    //startScreen();
+    std::cin >> charName;
+    name = charName;
+    startScreen();
     
     if (name.size() < 10) {
         int temp = name.size();
@@ -125,7 +128,6 @@ int main()
     nametag.values = "============|"+ name +"|============";
     
     sprite score;
-    int currentScore = 0;
     score.width = 12;
     score.height = 1;
 
