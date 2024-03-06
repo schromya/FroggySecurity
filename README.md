@@ -23,6 +23,10 @@ Once the program is started you will be prompted to enter your frog's name (try 
 
 ![](demo.gif)
 
+
+## Demo
+In the `demo` directory there are also 3 examples that showcase how code is written in Rust vs C++.
+
 ## Main References
 - https://doc.rust-lang.org/book/
 - ChatGPT: Used to learn Rust and debug the Rust program.
