@@ -1,5 +1,5 @@
 [package]
-name = "froggy_rust_v2"
+name = "froggy_rust"
 version = "0.1.0"
 edition = "2021"
 
