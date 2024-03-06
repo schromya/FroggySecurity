@@ -1,4 +1,4 @@
-/*  Example 1: Strong Types
+/*  Example 1: Strong Types, Memory Management
 
     Compile ->  rustc ex_1.rs
     Run ->      ./ex_1

@@ -1,0 +1,9 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./froggy_rust_v2/Cargo.toml",
+        "./froggy_rust_v2/Cargo.toml"
+    ],
+    "cSpell.words": [
+        "positon"
+    ]
+}

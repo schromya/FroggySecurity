@@ -5,6 +5,6 @@
 */
 
 int main() {
-    int number_1 = 1;
-    const int number_2 = 2;
+    int number_1 = 1;  // mutable
+    const int number_2 = 2;  //const
 }
